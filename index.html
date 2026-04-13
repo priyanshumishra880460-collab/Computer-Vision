@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Azure Vision Analyzer</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+<div class="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-2xl">
+
+    <h1 class="text-2xl font-bold text-center mb-6">🧠 Azure Computer Vision</h1>
+
+    <!-- Azure Credentials -->
+    <div class="mb-4">
+        <label class="block font-semibold">API Key</label>
+        <input id="apiKey" type="text" placeholder="Paste your Azure Key"
+            class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+    </div>
+
+    <div class="mb-6">
+        <label class="block font-semibold">Endpoint</label>
+        <input id="endpoint" type="text" placeholder="https://your-endpoint.cognitiveservices.azure.com/"
+            class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+    </div>
+
+    <!-- URL Input -->
+    <div class="mb-4">
+        <label class="block font-semibold">Image URL</label>
+        <input id="imageUrl" type="text" placeholder="Enter image URL"
+            class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
+    </div>
+
+    <button onclick="analyzeURL()" 
+        class="w-full bg-green-500 hover:bg-green-600 text-white p-3 rounded-lg mb-6 transition">
+        Analyze from URL
+    </button>
+
+    <!-- Upload -->
+    <div class="mb-4">
+        <label class="block font-semibold">Upload Image</label>
+        <input id="imageFile" type="file"
+            class="w-full p-2 border rounded-lg">
+    </div>
+
+    <button onclick="analyzeUpload()" 
+        class="w-full bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg transition">
+        Upload & Analyze
+    </button>
+
+    <!-- Preview -->
+    <div class="mt-6 text-center">
+        <img id="preview" class="mx-auto rounded-lg shadow-md max-h-64"/>
+    </div>
+
+    <!-- Result -->
+    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+        <h2 class="font-semibold">Result:</h2>
+        <p id="result" class="text-gray-700 mt-2">No result yet</p>
+    </div>
+
+</div>
+
+<script>
+
+// Analyze using URL (Direct API call)
+async function analyzeURL() {
+    const key = document.getElementById("apiKey").value;
+    const endpoint = document.getElementById("endpoint").value;
+    const imageUrl = document.getElementById("imageUrl").value;
+
+    document.getElementById("preview").src = imageUrl;
+
+    const response = await fetch(endpoint + "computervision/imageanalysis:analyze?api-version=2023-02-01&features=caption", {
+        method: "POST",
+        headers: {
+            "Ocp-Apim-Subscription-Key": key,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ url: imageUrl })
+    });
+
+    const data = await response.json();
+    document.getElementById("result").innerText =
+        data.captionResult?.text || "No caption found";
+}
+
+// Analyze Upload (Direct API call)
+async function analyzeUpload() {
+    const key = document.getElementById("apiKey").value;
+    const endpoint = document.getElementById("endpoint").value;
+    const file = document.getElementById("imageFile").files[0];
+
+    document.getElementById("preview").src = URL.createObjectURL(file);
+
+    const response = await fetch(endpoint + "computervision/imageanalysis:analyze?api-version=2023-02-01&features=caption", {
+        method: "POST",
+        headers: {
+            "Ocp-Apim-Subscription-Key": key,
+            "Content-Type": "application/octet-stream"
+        },
+        body: file
+    });
+
+    const data = await response.json();
+    document.getElementById("result").innerText =
+        data.captionResult?.text || "No caption found";
+}
+
+</script>
+
+</body>
+</html>
